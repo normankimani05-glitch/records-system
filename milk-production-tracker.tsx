@@ -3465,37 +3465,6 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                   <CardDescription>Real-time synchronization across all devices</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                      <h4 className="font-medium text-green-800 mb-2">✅ Real-time Sharing</h4>
-                      <ul className="text-sm text-green-700 space-y-1">
-                        <li>• Instant updates across all devices</li>
-                        <li>• No need to export/import files</li>
-                        <li>• Multiple users can work simultaneously</li>
-                        <li>• Changes appear immediately</li>
-                      </ul>
-                    </div>
-
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <h4 className="font-medium text-blue-800 mb-2">🔒 Secure & Reliable</h4>
-                      <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• Data backed up automatically</li>
-                        <li>• Secure cloud infrastructure</li>
-                        <li>• No data loss from device issues</li>
-                        <li>• Access from anywhere</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <h4 className="font-medium text-yellow-800 mb-2">🚀 How to Share the System:</h4>
-                    <ol className="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
-                      <li>Simply share the system URL with anyone</li>
-                      <li>They can login with their credentials immediately</li>
-                      <li>All data is automatically available and up-to-date</li>
-                      <li>No file transfers or manual syncing needed</li>
-                    </ol>
-                  </div>
 
                   <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
                     <div className="text-center">
