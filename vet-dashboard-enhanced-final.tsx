@@ -315,12 +315,6 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
                 <span>Last sync: {lastSyncTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} PM</span>
               </div>
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <Button variant="outline" className="bg-gray-900 text-white hover:bg-gray-800 border-gray-900 w-full sm:w-auto">
-                {currentVet.split(" ")[1] || currentVet}
-              </Button>
-            </div>
           </div>
         </div>
       </header>
