@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS ai_records (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
     -- Constraints
-    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarwa', 'Cate', 'Monica', 'Dorothy'))
+    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarua', 'Cate', 'Monica', 'Dorothy'))
 );
 
 -- Treatment Records Table
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS treatment_records (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
     -- Constraints
-    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarwa', 'Cate', 'Monica', 'Dorothy')),
+    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarua', 'Cate', 'Monica', 'Dorothy')),
     CONSTRAINT valid_treatment_date CHECK (treatment_date <= CURRENT_DATE)
 );
 

@@ -20,7 +20,7 @@ CREATE TABLE ai_records (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
-    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarwa', 'Cate', 'Monica', 'Dorothy'))
+    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarua', 'Cate', 'Monica', 'Dorothy'))
 );
 
 CREATE TABLE treatment_records (
@@ -33,7 +33,7 @@ CREATE TABLE treatment_records (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
-    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarwa', 'Cate', 'Monica', 'Dorothy')),
+    CONSTRAINT valid_cow_name CHECK (cow_name IN ('Nyandarua', 'Cate', 'Monica', 'Dorothy')),
     CONSTRAINT valid_treatment_date CHECK (treatment_date <= CURRENT_DATE)
 );
 

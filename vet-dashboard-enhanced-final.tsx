@@ -9,11 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Heart, Stethoscope, Camera, Calendar, X, Wifi, LogOut } from "lucide-react"
 import { vetService, type AIRecord, type TreatmentRecord } from "@/lib/vet-service"
 
-const COW_NAMES = ["Nyandarwa", "Cate", "Monica", "Dorothy", "Shalon", "Fridah", "Viola", "Jakuom"]
+const COW_NAMES = ["Nyandarua", "Cate", "Monica", "Dorothy", "Shalon", "Fridah", "Viola", "Jakuom"]
 
 // Unique text colors for each cow name
 const COW_TEXT_COLORS = {
-  "Nyandarwa": "text-blue-600",
+  "Nyandarua": "text-blue-600",
   "Cate": "text-green-600",
   "Monica": "text-purple-600",
   "Dorothy": "text-orange-600",
@@ -89,13 +89,13 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
 
   const [aiForm, setAiForm] = useState({
     cow_name: "",
-    ai_image: ""
+    ai_images: [] as string[]
   })
   const [treatmentForm, setTreatmentForm] = useState({
     cow_name: "",
     treatment_date: "",
     treatment_notes: "",
-    treatment_image: ""
+    treatment_images: [] as string[]
   })
   const [aiRecords, setAiRecords] = useState<AIRecord[]>([])
   const [treatmentRecords, setTreatmentRecords] = useState<TreatmentRecord[]>([])
@@ -130,38 +130,44 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
   }
 
   const handleAiSubmit = useCallback(async () => {
-    if (!aiForm.cow_name || !aiForm.ai_image) {
-      alert("Please select a cow and upload an image")
+    if (!aiForm.cow_name || aiForm.ai_images.length === 0) {
+      alert("Please select a cow and upload at least one image")
       return
     }
     
     setIsLoading(true)
     try {
-      // Extract image type from data URL
-      const mimeType = aiForm.ai_image.split(',')[0].split(':')[1].split(';')[0]
-      const base64Data = aiForm.ai_image.split(',')[1] || aiForm.ai_image
+      // Process each image and create separate records
+      const newRecords = []
+      for (const imageData of aiForm.ai_images) {
+        // Extract image type from data URL
+        const mimeType = imageData.split(',')[0].split(':')[1].split(';')[0]
+        const base64Data = imageData.split(',')[1] || imageData
+        
+        // Process image - store as base64 data URL
+        const imageDataUrl = await vetService.storeBase64Image(base64Data, mimeType)
+        
+        // Create AI record in database
+        const newRecord = await vetService.createAIRecord({
+          cow_name: aiForm.cow_name,
+          ai_image_url: imageDataUrl,
+          created_by: currentVet
+        })
+        
+        newRecords.push(newRecord)
+      }
       
-      // Process image - store as base64 data URL
-      const imageDataUrl = await vetService.storeBase64Image(base64Data, mimeType)
-      
-      // Create AI record in database
-      const newRecord = await vetService.createAIRecord({
-        cow_name: aiForm.cow_name,
-        ai_image_url: imageDataUrl,
-        created_by: currentVet
-      })
-      
-      // Update local state
-      setAiRecords(prev => [newRecord, ...prev])
+      // Update local state with all new records
+      setAiRecords(prev => [...newRecords, ...prev])
       
       // Show success message
-      setMessage("AI image saved successfully!")
+      setMessage(`${aiForm.ai_images.length} AI image${aiForm.ai_images.length > 1 ? 's' : ''} saved successfully!`)
       setTimeout(() => setMessage(""), 3000)
       
       // Reset form
       setAiForm({
         cow_name: "",
-        ai_image: ""
+        ai_images: []
       })
     } catch (error) {
       console.error("Error saving AI record:", error)
@@ -202,32 +208,41 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
     
     setIsLoading(true)
     try {
-      // Process image if provided
-      let treatmentImageUrl = undefined
-      let treatmentImageType = undefined
-      if (treatmentForm.treatment_image) {
-        // Extract image type from data URL
-        const mimeType = treatmentForm.treatment_image.split(',')[0].split(':')[1].split(';')[0]
-        const base64Data = treatmentForm.treatment_image.split(',')[1] || treatmentForm.treatment_image
+      // Process images if provided (create separate records for each image)
+      const newRecords = []
+      const imagesToProcess = treatmentForm.treatment_images.length > 0 ? treatmentForm.treatment_images : [null]
+      
+      for (const imageData of imagesToProcess) {
+        let treatmentImageUrl = undefined
+        let treatmentImageType = undefined
         
-        treatmentImageUrl = await vetService.storeBase64Image(base64Data, mimeType)
-        treatmentImageType = mimeType
+        if (imageData) {
+          // Extract image type from data URL
+          const mimeType = imageData.split(',')[0].split(':')[1].split(';')[0]
+          const base64Data = imageData.split(',')[1] || imageData
+          
+          treatmentImageUrl = await vetService.storeBase64Image(base64Data, mimeType)
+          treatmentImageType = mimeType
+        }
+        
+        // Create treatment record in database
+        const newRecord = await vetService.createTreatmentRecord({
+          cow_name: treatmentForm.cow_name,
+          treatment_date: treatmentForm.treatment_date,
+          treatment_notes: treatmentForm.treatment_notes,
+          treatment_image_url: treatmentImageUrl,
+          created_by: currentVet
+        })
+        
+        newRecords.push(newRecord)
       }
       
-      // Create treatment record in database
-      const newRecord = await vetService.createTreatmentRecord({
-        cow_name: treatmentForm.cow_name,
-        treatment_date: treatmentForm.treatment_date,
-        treatment_notes: treatmentForm.treatment_notes,
-        treatment_image_url: treatmentImageUrl,
-        created_by: currentVet
-      })
-      
-      // Update local state
-      setTreatmentRecords(prev => [newRecord, ...prev])
+      // Update local state with all new records
+      setTreatmentRecords(prev => [...newRecords, ...prev])
       
       // Show success message
-      setMessage("Treatment record saved successfully!")
+      const imageCount = treatmentForm.treatment_images.length
+      setMessage(`Treatment record${imageCount > 0 ? ` with ${imageCount} image${imageCount > 1 ? 's' : ''}` : ''} saved successfully!`)
       setTimeout(() => setMessage(""), 3000)
       
       // Reset form
@@ -235,7 +250,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
         cow_name: "",
         treatment_date: "",
         treatment_notes: "",
-        treatment_image: ""
+        treatment_images: []
       })
     } catch (error) {
       console.error("Error saving Treatment record:", error)
@@ -268,25 +283,50 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
   }, [treatmentForm, currentVet])
 
   const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>, type: 'ai' | 'treatment') => {
-    const file = event.target.files?.[0]
-    if (file) {
-      // Validate file type
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    // Validate file count (max 2 photos)
+    if (files.length > 2) {
+      alert('Maximum 2 photos allowed. Please select only 1 or 2 photos.')
+      event.target.value = '' // Clear the input
+      return
+    }
+
+    // Validate all files are images
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file (JPG, PNG, GIF, etc.)')
+        alert(`File ${file.name} is not an image. Please select only image files (JPG, PNG, GIF, etc.)`)
+        event.target.value = '' // Clear the input
         return
       }
-      
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        if (type === 'ai') {
-          setAiForm(prev => ({ ...prev, ai_image: result }))
-        } else {
-          setTreatmentForm(prev => ({ ...prev, treatment_image: result }))
-        }
-      }
-      reader.readAsDataURL(file)
     }
+
+    // Process all files
+    const readers: Promise<string>[] = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const readerPromise = new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = (e) => resolve(e.target?.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      readers.push(readerPromise)
+    }
+
+    // Wait for all files to be read
+    Promise.all(readers).then(results => {
+      if (type === 'ai') {
+        setAiForm(prev => ({ ...prev, ai_images: results }))
+      } else {
+        setTreatmentForm(prev => ({ ...prev, treatment_images: results }))
+      }
+    }).catch(error => {
+      console.error('Error reading files:', error)
+      alert('Error reading image files. Please try again.')
+    })
   }, [])
 
   const getAIRecordsForCow = useCallback((cowName: string) => {
@@ -332,13 +372,16 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
 
         {/* Success/Error Message */}
         {message && (
-          <div className="absolute top-16 right-4 left-4 sm:left-auto sm:w-auto z-10">
-            <div className={`p-3 rounded-lg shadow-lg text-sm font-medium ${
+          <div className="absolute top-16 left-0 right-0 z-50 px-4 sm:px-8">
+            <div className={`max-w-4xl mx-auto p-4 sm:p-6 rounded-xl shadow-2xl text-center transform transition-all duration-300 ${
               message.includes("Error") || message.includes("Please fill") 
-                ? "bg-red-100 text-red-800 border border-red-200" 
-                : "bg-green-100 text-green-800 border border-green-200"
+                ? "bg-red-500 text-white border-2 border-red-600" 
+                : "bg-green-500 text-white border-2 border-green-600"
             }`}>
-              {message}
+              <div className="text-lg sm:text-xl font-bold">
+                {message.includes("Error") || message.includes("Please fill") ? "⚠️ " : "✅ "}
+                {message}
+              </div>
             </div>
           </div>
         )}
@@ -470,20 +513,40 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
                           type="file"
                           id="ai-image"
                           accept="image/*"
+                          multiple
+                          max="2"
                           onChange={(e) => handleImageUpload(e, 'ai')}
                           className="block w-full text-sm text-gray-500 file:mr-4 file:ml-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:text-sm file:font-semibold hover:file:bg-gray-50"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Accepts: JPG, PNG, GIF, WebP, BMP, and all image formats
+                          Upload 1-2 photos (JPG, PNG, GIF, WebP, BMP, and all image formats)
                         </p>
-                        {aiForm.ai_image && (
+                        {aiForm.ai_images.length > 0 && (
                           <div className="mt-4">
-                            <p className="text-sm font-medium text-gray-700 mb-2">Image Preview:</p>
-                            <img 
-                              src={aiForm.ai_image} 
-                              alt="AI scan preview" 
-                              className="h-40 w-40 object-cover rounded-lg border-2 border-gray-200"
-                            />
+                            <p className="text-sm font-medium text-gray-700 mb-2">
+                              Image Preview ({aiForm.ai_images.length} photo{aiForm.ai_images.length > 1 ? 's' : ''}):
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                              {aiForm.ai_images.map((image, index) => (
+                                <div key={index} className="relative">
+                                  <img 
+                                    src={image} 
+                                    alt={`AI scan preview ${index + 1}`} 
+                                    className="h-40 w-40 object-cover rounded-lg border-2 border-gray-200"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newImages = aiForm.ai_images.filter((_, i) => i !== index)
+                                      setAiForm(prev => ({ ...prev, ai_images: newImages }))
+                                    }}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -616,19 +679,40 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
                           type="file"
                           id="treatment-image"
                           accept="image/*"
+                          multiple
+                          max="2"
                           onChange={(e) => handleImageUpload(e, 'treatment')}
                           className="block w-full text-sm text-gray-500 file:mr-4 file:ml-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:text-sm file:font-semibold hover:file:bg-gray-50"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Accepts: JPG, PNG, GIF, WebP, BMP, and all image formats
+                          Upload 1-2 photos (JPG, PNG, GIF, WebP, BMP, and all image formats)
                         </p>
-                        {treatmentForm.treatment_image && (
+                        {treatmentForm.treatment_images.length > 0 && (
                           <div className="mt-2">
-                            <img 
-                              src={treatmentForm.treatment_image} 
-                              alt="Treatment" 
-                              className="h-32 w-32 object-cover rounded-lg"
-                            />
+                            <p className="text-sm font-medium text-gray-700 mb-2">
+                              Image Preview ({treatmentForm.treatment_images.length} photo{treatmentForm.treatment_images.length > 1 ? 's' : ''}):
+                            </p>
+                            <div className="flex flex-wrap gap-3">
+                              {treatmentForm.treatment_images.map((image, index) => (
+                                <div key={index} className="relative">
+                                  <img 
+                                    src={image} 
+                                    alt={`Treatment image ${index + 1}`} 
+                                    className="h-32 w-32 object-cover rounded-lg"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newImages = treatmentForm.treatment_images.filter((_, i) => i !== index)
+                                      setTreatmentForm(prev => ({ ...prev, treatment_images: newImages }))
+                                    }}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
