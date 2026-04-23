@@ -1136,7 +1136,18 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
         effective_to: acarciaEffectiveTo,
       }
 
-      await acarciaPricingService.upsert(newAcarciaPricing)
+      try {
+        await acarciaPricingService.upsert(newAcarciaPricing)
+      } catch (upsertError) {
+        console.error("Upsert failed, trying insert instead:", upsertError)
+        // Fallback: try to insert instead of upsert
+        try {
+          await acarciaPricingService.create(newAcarciaPricing)
+        } catch (insertError) {
+          console.error("Insert also failed:", insertError)
+          throw insertError
+        }
+      }
       
       // Update dedicated Acarcia price state immediately
       setCurrentAcarciaPrice(price)
