@@ -166,12 +166,25 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
     } catch (error) {
       console.error("Error saving AI record:", error)
       
-      // Show alert dialog and message for RLS policy violations
-      if (error && typeof error === 'object' && error.code === '42501') {
-        alert("Failed to upload data.")
-        setMessage("Failed to upload data.")
-        setTimeout(() => setMessage(""), 5000)
+      // Handle different error types
+      if (error && typeof error === 'object') {
+        if (error.code === '42501') {
+          // RLS policy violation
+          alert("Failed to upload data.")
+          setMessage("Failed to upload data.")
+          setTimeout(() => setMessage(""), 5000)
+        } else if (error.status === 401 || error.message?.includes('Unauthorized')) {
+          // Authentication error
+          alert("Authentication failed. Please log out and log back in.")
+          setMessage("Authentication failed. Please log out and log back in.")
+          setTimeout(() => setMessage(""), 5000)
+        } else {
+          // Other errors
+          setMessage("Error saving AI record. Please try again.")
+          setTimeout(() => setMessage(""), 3000)
+        }
       } else {
+        // Non-object errors
         setMessage("Error saving AI record. Please try again.")
         setTimeout(() => setMessage(""), 3000)
       }
@@ -227,12 +240,25 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
     } catch (error) {
       console.error("Error saving Treatment record:", error)
       
-      // Show alert dialog and message for RLS policy violations
-      if (error && typeof error === 'object' && error.code === '42501') {
-        alert("Failed to upload data.")
-        setMessage("Failed to upload data.")
-        setTimeout(() => setMessage(""), 5000)
+      // Handle different error types
+      if (error && typeof error === 'object') {
+        if (error.code === '42501') {
+          // RLS policy violation
+          alert("Failed to upload data.")
+          setMessage("Failed to upload data.")
+          setTimeout(() => setMessage(""), 5000)
+        } else if (error.status === 401 || error.message?.includes('Unauthorized')) {
+          // Authentication error
+          alert("Authentication failed. Please log out and log back in.")
+          setMessage("Authentication failed. Please log out and log back in.")
+          setTimeout(() => setMessage(""), 5000)
+        } else {
+          // Other errors
+          setMessage("Error saving Treatment record. Please try again.")
+          setTimeout(() => setMessage(""), 3000)
+        }
       } else {
+        // Non-object errors
         setMessage("Error saving Treatment record. Please try again.")
         setTimeout(() => setMessage(""), 3000)
       }
