@@ -166,9 +166,11 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
     } catch (error) {
       console.error("Error saving AI record:", error)
       
-      // Show alert dialog for RLS policy violations
+      // Show alert dialog and message for RLS policy violations
       if (error && typeof error === 'object' && error.code === '42501') {
-        alert("Error saving AI record. Please try again.")
+        alert("Failed to upload data.")
+        setMessage("Failed to upload data.")
+        setTimeout(() => setMessage(""), 5000)
       } else {
         setMessage("Error saving AI record. Please try again.")
         setTimeout(() => setMessage(""), 3000)
@@ -225,9 +227,11 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
     } catch (error) {
       console.error("Error saving Treatment record:", error)
       
-      // Show alert dialog for RLS policy violations
+      // Show alert dialog and message for RLS policy violations
       if (error && typeof error === 'object' && error.code === '42501') {
-        alert("Error saving Treatment record. Please try again.")
+        alert("Failed to upload data.")
+        setMessage("Failed to upload data.")
+        setTimeout(() => setMessage(""), 5000)
       } else {
         setMessage("Error saving Treatment record. Please try again.")
         setTimeout(() => setMessage(""), 3000)
