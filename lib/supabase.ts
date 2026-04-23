@@ -97,6 +97,7 @@ export interface DukePayment {
   period_end: string
   paid_by: string
   paid_at: string
+  amount_per_litre: number
   notes?: string
 }
 

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import VetDashboard from "./vet-dashboard-enhanced-final"
-import AcarciaPaymentManager from "./components/acarcia-payment-manager"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -1371,10 +1370,13 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
 
       const litersCovered = paymentAmount / averagePrice
 
+      const amountPerLitre = currentDebt.liters > 0 ? paymentAmount / currentDebt.liters : 0
+      
       const newPayment = {
         payment_date: dukePaymentDate,
         amount: paymentAmount,
         liters: litersCovered,
+        amount_per_litre: amountPerLitre,
         period_start: currentDebt.periodStart,
         period_end: dukePaymentDate,
         paid_by: user?.name || "Owner",
@@ -1448,13 +1450,14 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
 
   const exportDukePayments = useCallback(() => {
     const headers = [
-      "Payment Date",
+      "Payment #",
       "Amount (KSh)",
-      "Liters Covered",
+      "Liters",
+      "Amount/Litre (KSh)",
       "Period Start",
       "Period End",
-      "Recorded By",
-      "Recorded At",
+      "Paid By",
+      "Paid At",
       "Notes",
     ]
 
@@ -1464,6 +1467,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
         payment.payment_date,
         payment.amount.toFixed(0),
         payment.liters.toFixed(1),
+        (payment.amount_per_litre || 0).toFixed(2),
         payment.period_start,
         payment.period_end,
         payment.paid_by,
@@ -1852,7 +1856,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                     <div className="flex items-center gap-2 mb-1">
                       <User className="w-3 h-3 text-blue-600" />
                       <Moon className="w-3 h-3 text-blue-500" />
-                      <span className="text-xs font-medium text-blue-700">Last Month Payout</span>
+                      <span className="text-xs font-medium text-blue-700">Acarcia Last Price</span>
                     </div>
                     <span className="text-sm font-bold text-blue-800">{currentAcarciaPrice} KSh/L</span>
                   </div>
@@ -1954,7 +1958,6 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => setActiveTab("duke-payments")}>Duke Payments</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab("acarcia-payments")}>Acarcia Payments</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setActiveTab("acarcia-monthly")}>Acarcia Monthly</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setActiveTab("settings")}>Settings</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setActiveTab("credentials")}>Credentials</DropdownMenuItem>
@@ -2615,10 +2618,6 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                 </div>
               </CardContent>
             </Card>
-          )}
-
-          {user.role === "owner" && activeTab === "acarcia-payments" && (
-            <AcarciaPaymentManager />
           )}
 
           {user.role === "owner" && activeTab === "settings" && (
