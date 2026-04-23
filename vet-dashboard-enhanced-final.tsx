@@ -9,14 +9,18 @@ import { Textarea } from "@/components/ui/textarea"
 import { Heart, Stethoscope, Camera, Calendar, X, Wifi, LogOut } from "lucide-react"
 import { vetService, type AIRecord, type TreatmentRecord } from "@/lib/vet-service"
 
-const COW_NAMES = ["Nyandarwa", "Cate", "Monica", "Dorothy"]
+const COW_NAMES = ["Nyandarwa", "Cate", "Monica", "Dorothy", "Shalon", "Fridah", "Viola", "Jakuom"]
 
 // Unique text colors for each cow name
 const COW_TEXT_COLORS = {
   "Nyandarwa": "text-blue-600",
   "Cate": "text-green-600",
   "Monica": "text-purple-600",
-  "Dorothy": "text-orange-600"
+  "Dorothy": "text-orange-600",
+  "Shalon": "text-pink-600",
+  "Fridah": "text-indigo-600",
+  "Viola": "text-teal-600",
+  "Jakuom": "text-red-600"
 }
 
 // Header colors for each section
@@ -60,6 +64,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
   const [modalImage, setModalImage] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState(new Date())
+  const [message, setMessage] = useState("")
   
   // Get current vet from logged-in user
   const currentVet = user?.name || "Unknown Vet"
@@ -75,6 +80,12 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
     }, 60000)
     return () => clearInterval(interval)
   }, [])
+
+  // Show welcome message when component mounts
+  useEffect(() => {
+    setMessage(`Welcome ${currentVet}!`)
+    setTimeout(() => setMessage(""), 3000)
+  }, [currentVet])
 
   const [aiForm, setAiForm] = useState({
     cow_name: "",
@@ -143,16 +154,19 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       // Update local state
       setAiRecords(prev => [newRecord, ...prev])
       
+      // Show success message
+      setMessage("AI image saved successfully!")
+      setTimeout(() => setMessage(""), 3000)
+      
       // Reset form
       setAiForm({
         cow_name: "",
         ai_image: ""
       })
-      
-      alert("AI image saved successfully!")
     } catch (error) {
       console.error("Error saving AI record:", error)
-      alert("Error saving AI record. Please try again.")
+      setMessage("Error saving AI record. Please try again.")
+      setTimeout(() => setMessage(""), 3000)
     } finally {
       setIsLoading(false)
     }
@@ -160,7 +174,8 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
 
   const handleTreatmentSubmit = useCallback(async () => {
     if (!treatmentForm.cow_name || !treatmentForm.treatment_date || !treatmentForm.treatment_notes) {
-      alert("Please fill in all required fields")
+      setMessage("Please fill in all required fields")
+      setTimeout(() => setMessage(""), 3000)
       return
     }
     
@@ -190,6 +205,10 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       // Update local state
       setTreatmentRecords(prev => [newRecord, ...prev])
       
+      // Show success message
+      setMessage("Treatment record saved successfully!")
+      setTimeout(() => setMessage(""), 3000)
+      
       // Reset form
       setTreatmentForm({
         cow_name: "",
@@ -197,11 +216,10 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
         treatment_notes: "",
         treatment_image: ""
       })
-      
-      alert("Treatment record saved successfully!")
     } catch (error) {
       console.error("Error saving Treatment record:", error)
-      alert("Error saving Treatment record. Please try again.")
+      setMessage("Error saving Treatment record. Please try again.")
+      setTimeout(() => setMessage(""), 3000)
     } finally {
       setIsLoading(false)
     }
@@ -259,7 +277,30 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Enhanced Header Section */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+      <header className="bg-white border-b border-gray-200 shadow-sm relative">
+        {/* Logout Button - Top Right Corner */}
+        <Button 
+          variant="outline" 
+          onClick={handleLogout} 
+          className="absolute top-4 right-4 text-gray-900 hover:bg-gray-100 p-2 h-8 w-8"
+          title="Logout"
+        >
+          <LogOut className="w-4 h-4" />
+        </Button>
+
+        {/* Success/Error Message */}
+        {message && (
+          <div className="absolute top-16 right-4 left-4 sm:left-auto sm:w-auto z-10">
+            <div className={`p-3 rounded-lg shadow-lg text-sm font-medium ${
+              message.includes("Error") || message.includes("Please fill") 
+                ? "bg-red-100 text-red-800 border border-red-200" 
+                : "bg-green-100 text-green-800 border border-green-200"
+            }`}>
+              {message}
+            </div>
+          </div>
+        )}
+
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div className="flex-1">
@@ -278,10 +319,6 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Button variant="outline" className="bg-gray-900 text-white hover:bg-gray-800 border-gray-900 w-full sm:w-auto">
                 {currentVet.split(" ")[1] || currentVet}
-              </Button>
-              <Button variant="outline" onClick={handleLogout} className="text-gray-900 hover:bg-gray-100 w-full sm:w-auto">
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
               </Button>
             </div>
           </div>
