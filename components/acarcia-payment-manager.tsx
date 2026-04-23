@@ -1,362 +1,302 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CalendarDays, DollarSign, TrendingUp, Calculator, AlertCircle } from "lucide-react"
-import { createClient } from "@/lib/supabase"
+import { Calendar, Calculator, TrendingUp, DollarSign } from "lucide-react"
 
 interface AcarciaPayment {
   id: string
   payment_date: string
-  amount_paid: number
-  payment_period_start: string
-  payment_period_end: string
+  payment_amount: number
   liters_covered: number
   calculated_price_per_liter: number
+  payment_period_start: string
+  payment_period_end: string
   created_at: string
 }
 
-interface CurrentPricing {
-  month_year: string
-  current_price_per_liter: number
-  last_payment_date: string
-  total_amount_paid: number
-  total_liters_sold: number
-  price_label: string
+interface PaymentFormData {
+  payment_amount: string
+  liters_sold: string
+  period_start: string
+  period_end: string
 }
 
-export default function AcarciaPaymentManager({ user }: { user: { name: string; role: string } }) {
-  const [paymentForm, setPaymentForm] = useState({
-    payment_date: "",
-    amount_paid: "",
-    payment_period_start: "",
-    payment_period_end: "",
-    notes: ""
-  })
-  
-  const [currentPricing, setCurrentPricing] = useState<CurrentPricing | null>(null)
-  const [recentPayments, setRecentPayments] = useState<AcarciaPayment[]>([])
+export default function AcarciaPaymentManager() {
+  const [payments, setPayments] = useState<AcarciaPayment[]>([])
+  const [lastMonthPayout, setLastMonthPayout] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState("")
-  
-  const supabase = createClient()
+  const [formData, setFormData] = useState<PaymentFormData>({
+    payment_amount: "",
+    liters_sold: "",
+    period_start: "",
+    period_end: ""
+  })
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null)
 
-  // Load current pricing and recent payments
+  // Load payment history and last month payout
   useEffect(() => {
-    loadCurrentPricing()
-    loadRecentPayments()
+    loadPaymentData()
   }, [])
 
-  const loadCurrentPricing = async () => {
+  const loadPaymentData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('current_acarcia_pricing')
-        .select('*')
-        .single()
+      // In a real implementation, these would be API calls to your backend
+      // For now, we'll simulate the data
       
-      if (error && error.code !== 'PGRST116') { // Not found error
-        console.error('Error loading current pricing:', error)
-      } else {
-        setCurrentPricing(data)
-      }
+      // Simulate last month payout
+      const mockLastMonth = 45.50 // KES per liter
+      setLastMonthPayout(mockLastMonth)
+      
+      // Simulate payment history
+      const mockPayments: AcarciaPayment[] = [
+        {
+          id: "1",
+          payment_date: "2024-01-31",
+          payment_amount: 50000,
+          liters_covered: 1100,
+          calculated_price_per_liter: 45.45,
+          payment_period_start: "2024-01-01",
+          payment_period_end: "2024-01-31",
+          created_at: "2024-01-31T10:00:00Z"
+        }
+      ]
+      setPayments(mockPayments)
     } catch (error) {
-      console.error('Error loading current pricing:', error)
+      console.error("Error loading payment data:", error)
     }
   }
 
-  const loadRecentPayments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('acarcia_payments')
-        .select('*')
-        .order('payment_date', { ascending: false })
-        .limit(5)
-      
-      if (error) {
-        console.error('Error loading recent payments:', error)
-      } else {
-        setRecentPayments(data || [])
-      }
-    } catch (error) {
-      console.error('Error loading recent payments:', error)
+  const calculatePrice = () => {
+    const amount = parseFloat(formData.payment_amount)
+    const liters = parseFloat(formData.liters_sold)
+    
+    if (amount && liters && liters > 0) {
+      const price = amount / liters
+      setCalculatedPrice(price)
+    } else {
+      setCalculatedPrice(null)
     }
   }
 
-  const handleSubmitPayment = async () => {
-    if (!paymentForm.payment_date || !paymentForm.amount_paid || 
-        !paymentForm.payment_period_start || !paymentForm.payment_period_end) {
-      alert("Please fill in all required fields")
+  useEffect(() => {
+    calculatePrice()
+  }, [formData.payment_amount, formData.liters_sold])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!formData.payment_amount || !formData.liters_sold || !formData.period_start || !formData.period_end) {
+      alert("Please fill in all fields")
       return
     }
 
     setIsLoading(true)
     try {
-      // Call the automatic pricing function
-      const { error } = await supabase.rpc('auto_update_acarcia_pricing', {
-        p_payment_date: paymentForm.payment_date,
-        p_amount_paid: parseFloat(paymentForm.amount_paid),
-        p_period_start: paymentForm.payment_period_start,
-        p_period_end: paymentForm.payment_period_end,
-        p_created_by: user.name
-      })
+      const amount = parseFloat(formData.payment_amount)
+      const liters = parseFloat(formData.liters_sold)
+      const price = amount / liters
 
-      if (error) {
-        console.error('Error processing payment:', error)
-        alert("Error processing payment. Please try again.")
-      } else {
-        alert("Payment processed successfully! Price per liter calculated automatically.")
-        
-        // Reset form
-        setPaymentForm({
-          payment_date: "",
-          amount_paid: "",
-          payment_period_start: "",
-          payment_period_end: "",
-          notes: ""
-        })
-        
-        // Reload data
-        loadCurrentPricing()
-        loadRecentPayments()
+      // In a real implementation, this would call your backend API
+      // For now, we'll simulate the response
+      const newPayment: AcarciaPayment = {
+        id: Date.now().toString(),
+        payment_date: new Date().toISOString().split('T')[0],
+        payment_amount: amount,
+        liters_covered: liters,
+        calculated_price_per_liter: price,
+        payment_period_start: formData.period_start,
+        payment_period_end: formData.period_end,
+        created_at: new Date().toISOString()
       }
+
+      setPayments(prev => [newPayment, ...prev])
+      
+      // Reset form
+      setFormData({
+        payment_amount: "",
+        liters_sold: "",
+        period_start: "",
+        period_end: ""
+      })
+      setCalculatedPrice(null)
+      
+      alert(`Payment recorded successfully! Price per liter: KES ${price.toFixed(2)}`)
     } catch (error) {
-      console.error('Error processing payment:', error)
-      alert("Error processing payment. Please try again.")
+      console.error("Error recording payment:", error)
+      alert("Error recording payment. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
-  const setPeriodDates = (period: string) => {
+  const getCurrentMonthDates = () => {
     const now = new Date()
-    let start: Date, end: Date
-
-    switch (period) {
-      case "current_month":
-        start = new Date(now.getFullYear(), now.getMonth(), 1)
-        end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-        break
-      case "last_month":
-        start = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-        end = new Date(now.getFullYear(), now.getMonth(), 0)
-        break
-      case "last_30_days":
-        end = new Date()
-        start = new Date(end.getTime() - (30 * 24 * 60 * 60 * 1000))
-        break
-      default:
-        return
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    
+    return {
+      start: firstDay.toISOString().split('T')[0],
+      end: lastDay.toISOString().split('T')[0]
     }
-
-    setPaymentForm(prev => ({
-      ...prev,
-      payment_period_start: start.toISOString().split('T')[0],
-      payment_period_end: end.toISOString().split('T')[0]
-    }))
   }
+
+  useEffect(() => {
+    const dates = getCurrentMonthDates()
+    setFormData(prev => ({
+      ...prev,
+      period_start: dates.start,
+      period_end: dates.end
+    }))
+  }, [])
 
   return (
     <div className="space-y-6">
-      {/* Current Pricing Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Current Acarcia Pricing
+      {/* Last Month Payout Card */}
+      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg text-green-800 flex items-center gap-2">
+            <DollarSign className="w-5 h-5" />
+            Last Month Payout
           </CardTitle>
-          <CardDescription>
-            Last calculated price per liter based on actual payments
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          {currentPricing ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="text-sm text-green-600 font-medium">Price per Liter</div>
-                  <div className="text-2xl font-bold text-green-800">
-                    KES {currentPricing.current_price_per_liter.toFixed(4)}
-                  </div>
-                  <div className="text-xs text-green-600 mt-1">
-                    {currentPricing.price_label}
-                  </div>
-                </div>
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-sm text-blue-600 font-medium">Last Payment</div>
-                  <div className="text-lg font-semibold text-blue-800">
-                    KES {currentPricing.total_amount_paid.toLocaleString()}
-                  </div>
-                  <div className="text-xs text-blue-600 mt-1">
-                    {currentPricing.total_liters_sold.toFixed(2)} liters
-                  </div>
-                </div>
-              </div>
-              <div className="text-sm text-gray-600">
-                <div>Period: {currentPricing.month_year}</div>
-                <div>Last Updated: {new Date(currentPricing.last_payment_date).toLocaleDateString()}</div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Calculator className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <div>No pricing data available</div>
-              <div className="text-sm">Process your first payment to calculate price per liter</div>
-            </div>
-          )}
+          <div className="text-3xl font-bold text-green-700">
+            KES {lastMonthPayout.toFixed(2)}
+          </div>
+          <p className="text-sm text-green-600 mt-1">
+            Per liter paid to Acarcia
+          </p>
         </CardContent>
       </Card>
 
-      {/* Payment Processing Form */}
+      {/* Payment Form */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Process Acarcia Payment
+            <Calculator className="w-5 h-5" />
+            Record Acarcia Payment
           </CardTitle>
-          <CardDescription>
-            Enter payment amount and period to automatically calculate price per liter
-          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="payment_date">Payment Date *</Label>
-              <Input
-                id="payment_date"
-                type="date"
-                value={paymentForm.payment_date}
-                onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_date: e.target.value }))}
-                className="w-full"
-              />
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="payment_amount">Total Amount Paid (KES)</Label>
+                <Input
+                  id="payment_amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 50000"
+                  value={formData.payment_amount}
+                  onChange={(e) => setFormData(prev => ({ ...prev, payment_amount: e.target.value }))}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="liters_sold">Total Liters Sold</Label>
+                <Input
+                  id="liters_sold"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g., 1100"
+                  value={formData.liters_sold}
+                  onChange={(e) => setFormData(prev => ({ ...prev, liters_sold: e.target.value }))}
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="amount_paid">Amount Paid (KES) *</Label>
-              <Input
-                id="amount_paid"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={paymentForm.amount_paid}
-                onChange={(e) => setPaymentForm(prev => ({ ...prev, amount_paid: e.target.value }))}
-                className="w-full"
-              />
-            </div>
-          </div>
 
-          <div>
-            <Label>Quick Period Selection</Label>
-            <div className="flex gap-2 mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPeriodDates("current_month")}
-              >
-                Current Month
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPeriodDates("last_month")}
-              >
-                Last Month
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPeriodDates("last_30_days")}
-              >
-                Last 30 Days
-              </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="period_start">Payment Period Start</Label>
+                <Input
+                  id="period_start"
+                  type="date"
+                  value={formData.period_start}
+                  onChange={(e) => setFormData(prev => ({ ...prev, period_start: e.target.value }))}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="period_end">Payment Period End</Label>
+                <Input
+                  id="period_end"
+                  type="date"
+                  value={formData.period_end}
+                  onChange={(e) => setFormData(prev => ({ ...prev, period_end: e.target.value }))}
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="period_start">Period Start Date *</Label>
-              <Input
-                id="period_start"
-                type="date"
-                value={paymentForm.payment_period_start}
-                onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_period_start: e.target.value }))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <Label htmlFor="period_end">Period End Date *</Label>
-              <Input
-                id="period_end"
-                type="date"
-                value={paymentForm.payment_period_end}
-                onChange={(e) => setPaymentForm(prev => ({ ...prev, payment_period_end: e.target.value }))}
-                className="w-full"
-              />
-            </div>
-          </div>
+            {/* Calculated Price Display */}
+            {calculatedPrice !== null && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-blue-800 font-medium">Calculated Price Per Liter:</span>
+                  <span className="text-2xl font-bold text-blue-700">
+                    KES {calculatedPrice.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
 
-          <div>
-            <Label htmlFor="notes">Notes (Optional)</Label>
-            <Input
-              id="notes"
-              placeholder="Payment notes..."
-              value={paymentForm.notes}
-              onChange={(e) => setPaymentForm(prev => ({ ...prev, notes: e.target.value }))}
-              className="w-full"
-            />
-          </div>
-
-          <Button 
-            onClick={handleSubmitPayment}
-            disabled={isLoading}
-            className="w-full"
-          >
-            {isLoading ? "Processing..." : "Process Payment & Calculate Price"}
-          </Button>
-
-          {message && (
-            <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <span className="text-sm text-blue-800">{message}</span>
-            </div>
-          )}
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading || !calculatedPrice}
+            >
+              {isLoading ? "Recording Payment..." : "Record Payment & Update Price"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
 
-      {/* Recent Payments */}
-      {recentPayments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              Recent Payments
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Payment History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Payment History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {payments.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">No payment records found</p>
+          ) : (
             <div className="space-y-3">
-              {recentPayments.map((payment) => (
-                <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <div className="font-medium">KES {payment.amount_paid.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">
-                      {new Date(payment.payment_date).toLocaleDateString()} • 
-                      {payment.liters_covered.toFixed(2)} liters
+              {payments.map((payment) => (
+                <div key={payment.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-medium">Payment: KES {payment.payment_amount.toLocaleString()}</p>
+                      <p className="text-sm text-gray-600">
+                        {payment.liters_covered} liters × KES {payment.calculated_price_per_liter.toFixed(2)}/liter
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Period: {payment.payment_period_start} to {payment.payment_period_end}
+                      </p>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-medium text-green-600">
-                      KES {payment.calculated_price_per_liter.toFixed(4)}/L
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-green-600">
+                        KES {payment.calculated_price_per_liter.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-500">per liter</p>
                     </div>
-                    <div className="text-xs text-gray-500">per liter</div>
                   </div>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

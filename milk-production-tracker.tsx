@@ -1852,7 +1852,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                     <div className="flex items-center gap-2 mb-1">
                       <User className="w-3 h-3 text-blue-600" />
                       <Moon className="w-3 h-3 text-blue-500" />
-                      <span className="text-xs font-medium text-blue-700">Acarcia Last Price</span>
+                      <span className="text-xs font-medium text-blue-700">Last Month Payout</span>
                     </div>
                     <span className="text-sm font-bold text-blue-800">{currentAcarciaPrice} KSh/L</span>
                   </div>
@@ -1954,7 +1954,8 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem onClick={() => setActiveTab("duke-payments")}>Duke Payments</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab("acarcia-monthly")}>Acarcia Payments</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveTab("acarcia-payments")}>Acarcia Payments</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setActiveTab("acarcia-monthly")}>Acarcia Monthly</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setActiveTab("settings")}>Settings</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setActiveTab("credentials")}>Credentials</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setActiveTab("notepad")}>Notepad</DropdownMenuItem>
@@ -2536,7 +2537,88 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
           )}
 
           {user.role === "owner" && activeTab === "acarcia-monthly" && (
-            <AcarciaPaymentManager user={user} />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-blue-600" />
+                  {"Acarcia's Monthly Summary"}
+                </CardTitle>
+                <CardDescription>{"Monthly totals for Acarcia's evening milk - Real-time cloud sync"}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {(() => {
+                    const monthlyData: { [key: string]: { evening: number; revenue: number } } = {}
+
+                    records.forEach((record) => {
+                      if (!record || !record.date) return
+                      const date = new Date(record.date)
+                      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+
+                      if (!monthlyData[monthKey]) {
+                        monthlyData[monthKey] = { evening: 0, revenue: 0 }
+                      }
+
+                      if (record.session === "evening") {
+                        const acarciaPrice = getAcarciaPriceForDate(record.date)
+                        monthlyData[monthKey].evening += record.acarcia_amount ?? 0
+                        monthlyData[monthKey].revenue += (record.acarcia_amount ?? 0) * acarciaPrice
+                      }
+                    })
+
+                    return Object.entries(monthlyData)
+                      .map(([month, data]) => ({
+                        month: new Date(month + "-01").toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                        }),
+                        monthKey: month,
+                        evening: data.evening,
+                        total: data.evening,
+                        revenue: data.revenue,
+                        isPaid: getPaymentStatusValue(month, "monthly", "Acarcia"),
+                      }))
+                      .sort((a, b) => new Date(b.monthKey + "-01").getTime() - new Date(a.monthKey + "-01").getTime())
+                      .slice(0, 12)
+                      .map((month, index) => (
+                        <div key={index} className="p-4 border rounded-lg bg-blue-50">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
+                            <div>
+                              <p className="font-medium text-lg">{month.month}</p>
+                              <p className="text-xl font-bold text-blue-600">{month.total.toFixed(1)} liters</p>
+                            </div>
+                            <div className="text-left sm:text-right space-y-2">
+                              <p className="text-3xl font-bold text-blue-600">{month.revenue.toFixed(0)} KSh</p>
+                              <div className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`acarcia-month-${month.monthKey}`}
+                                  checked={month.isPaid}
+                                  onCheckedChange={() => togglePaymentStatus(month.monthKey, "monthly", "Acarcia")}
+                                  disabled={isLoading}
+                                />
+                                <Label htmlFor={`acarcia-month-${month.monthKey}`} className="text-sm">
+                                  {month.isPaid ? (
+                                    <span className="text-green-600 flex items-center gap-1">
+                                      <CheckCircle className="w-3 h-3" />
+                                      Acarcia Paid
+                                    </span>
+                                  ) : (
+                                    "Mark Acarcia Paid"
+                                  )}
+                                </Label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {user.role === "owner" && activeTab === "acarcia-payments" && (
+            <AcarciaPaymentManager />
           )}
 
           {user.role === "owner" && activeTab === "settings" && (
