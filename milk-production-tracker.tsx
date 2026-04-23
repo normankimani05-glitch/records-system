@@ -1216,7 +1216,19 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
              recordDate <= monthEnd
     })
 
+    // Debug: Log the records found
+    console.log("Acarcia records for month:", monthRecords)
+    console.log("Month range:", { start: monthStart, end: monthEnd })
+
     const totalLiters = monthRecords.reduce((sum, record) => sum + record.acarcia_amount, 0)
+    
+    // Debug: Log the calculation
+    console.log("Calculation:", {
+      paymentAmount,
+      totalLiters,
+      monthRecordsCount: monthRecords.length,
+      calculation: `${paymentAmount} ÷ ${totalLiters} = ${paymentAmount / totalLiters}`
+    })
 
     if (totalLiters === 0) {
       setMessage("No Acarcia milk records found for this month!")
@@ -1228,7 +1240,8 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
     const pricePerLiter = paymentAmount / totalLiters
     setCalculatedPricePerLiter(pricePerLiter)
 
-    setMessage(`Calculated: ${pricePerLiter.toFixed(2)} KSh per liter (${totalLiters} liters)`)
+    // Show detailed calculation breakdown
+    setMessage(`Payment: ${paymentAmount.toFixed(2)} KSh ÷ ${totalLiters} liters = ${pricePerLiter.toFixed(2)} KSh per liter`)
     setTimeout(() => setMessage(""), 5000)
   }, [acarciaMonthlyPayment, acarciaPaymentMonth, records])
 
