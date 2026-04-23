@@ -165,8 +165,14 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       })
     } catch (error) {
       console.error("Error saving AI record:", error)
-      setMessage("Error saving AI record. Please try again.")
-      setTimeout(() => setMessage(""), 3000)
+      
+      // Show alert dialog for RLS policy violations
+      if (error && typeof error === 'object' && error.code === '42501') {
+        alert("Error saving AI record. Please try again.")
+      } else {
+        setMessage("Error saving AI record. Please try again.")
+        setTimeout(() => setMessage(""), 3000)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -218,8 +224,14 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       })
     } catch (error) {
       console.error("Error saving Treatment record:", error)
-      setMessage("Error saving Treatment record. Please try again.")
-      setTimeout(() => setMessage(""), 3000)
+      
+      // Show alert dialog for RLS policy violations
+      if (error && typeof error === 'object' && error.code === '42501') {
+        alert("Error saving Treatment record. Please try again.")
+      } else {
+        setMessage("Error saving Treatment record. Please try again.")
+        setTimeout(() => setMessage(""), 3000)
+      }
     } finally {
       setIsLoading(false)
     }
