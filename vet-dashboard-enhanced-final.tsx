@@ -64,8 +64,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
   const [modalImage, setModalImage] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [lastSyncTime, setLastSyncTime] = useState(new Date())
-  const [message, setMessage] = useState("")
-  
+    
   // Get current vet from logged-in user
   const currentVet = user?.name || "Unknown Vet"
   
@@ -81,12 +80,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
     return () => clearInterval(interval)
   }, [])
 
-  // Show welcome message when component mounts
-  useEffect(() => {
-    setMessage(`Welcome ${currentVet}!`)
-    setTimeout(() => setMessage(""), 3000)
-  }, [currentVet])
-
+  
   const [aiForm, setAiForm] = useState({
     cow_name: "",
     ai_images: [] as string[]
@@ -161,8 +155,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       setAiRecords(prev => [...newRecords, ...prev])
       
       // Show success message
-      setMessage(`${aiForm.ai_images.length} AI image${aiForm.ai_images.length > 1 ? 's' : ''} saved successfully!`)
-      setTimeout(() => setMessage(""), 3000)
+      alert("AI image saved successfully!")
       
       // Reset form
       setAiForm({
@@ -177,22 +170,16 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
         if (error.code === '42501') {
           // RLS policy violation
           alert("Failed to upload data.")
-          setMessage("Failed to upload data.")
-          setTimeout(() => setMessage(""), 5000)
         } else if (error.status === 401 || error.message?.includes('Unauthorized')) {
           // Authentication error
           alert("Authentication failed. Please log out and log back in.")
-          setMessage("Authentication failed. Please log out and log back in.")
-          setTimeout(() => setMessage(""), 5000)
         } else {
           // Other errors
-          setMessage("Error saving AI record. Please try again.")
-          setTimeout(() => setMessage(""), 3000)
+          alert("Error saving AI record. Please try again.")
         }
       } else {
         // Non-object errors
-        setMessage("Error saving AI record. Please try again.")
-        setTimeout(() => setMessage(""), 3000)
+        alert("Error saving AI record. Please try again.")
       }
     } finally {
       setIsLoading(false)
@@ -201,8 +188,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
 
   const handleTreatmentSubmit = useCallback(async () => {
     if (!treatmentForm.cow_name || !treatmentForm.treatment_date || !treatmentForm.treatment_notes) {
-      setMessage("Please fill in all required fields")
-      setTimeout(() => setMessage(""), 3000)
+      alert("Please fill in all required fields")
       return
     }
     
@@ -241,9 +227,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       setTreatmentRecords(prev => [...newRecords, ...prev])
       
       // Show success message
-      const imageCount = treatmentForm.treatment_images.length
-      setMessage(`Treatment record${imageCount > 0 ? ` with ${imageCount} image${imageCount > 1 ? 's' : ''}` : ''} saved successfully!`)
-      setTimeout(() => setMessage(""), 3000)
+      alert("Treatment record saved successfully!")
       
       // Reset form
       setTreatmentForm({
@@ -260,22 +244,16 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
         if (error.code === '42501') {
           // RLS policy violation
           alert("Failed to upload data.")
-          setMessage("Failed to upload data.")
-          setTimeout(() => setMessage(""), 5000)
         } else if (error.status === 401 || error.message?.includes('Unauthorized')) {
           // Authentication error
           alert("Authentication failed. Please log out and log back in.")
-          setMessage("Authentication failed. Please log out and log back in.")
-          setTimeout(() => setMessage(""), 5000)
         } else {
           // Other errors
-          setMessage("Error saving Treatment record. Please try again.")
-          setTimeout(() => setMessage(""), 3000)
+          alert("Error saving Treatment record. Please try again.")
         }
       } else {
         // Non-object errors
-        setMessage("Error saving Treatment record. Please try again.")
-        setTimeout(() => setMessage(""), 3000)
+        alert("Error saving Treatment record. Please try again.")
       }
     } finally {
       setIsLoading(false)
@@ -369,22 +347,6 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
         >
           <LogOut className="w-4 h-4" />
         </Button>
-
-        {/* Success/Error Message */}
-        {message && (
-          <div className="absolute top-16 left-0 right-0 z-50 px-4 sm:px-8">
-            <div className={`max-w-4xl mx-auto p-4 sm:p-6 rounded-xl shadow-2xl text-center transform transition-all duration-300 ${
-              message.includes("Error") || message.includes("Please fill") 
-                ? "bg-red-500 text-white border-2 border-red-600" 
-                : "bg-green-500 text-white border-2 border-green-600"
-            }`}>
-              <div className="text-lg sm:text-xl font-bold">
-                {message.includes("Error") || message.includes("Please fill") ? "⚠️ " : "✅ "}
-                {message}
-              </div>
-            </div>
-          </div>
-        )}
 
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="mb-4">
@@ -724,7 +686,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
                           id="treatment-date"
                           value={treatmentForm.treatment_date}
                           onChange={(e) => setTreatmentForm(prev => ({ ...prev, treatment_date: e.target.value }))}
-                          className="block w-full p-2 border rounded-md"
+                          className="block w-full p-2 sm:p-3 border rounded-md text-base sm:text-lg min-h-[44px] sm:min-h-[48px] touch-manipulation"
                         />
                       </div>
                       
