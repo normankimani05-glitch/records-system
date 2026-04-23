@@ -348,12 +348,12 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
           <LogOut className="w-4 h-4" />
         </Button>
 
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="mb-4">
+        <div className="max-w-6xl mx-auto px-4 py-2 sm:py-4">
+          <div className="mb-2 sm:mb-4">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Veterinary Page</h1>
-              <p className="text-sm text-gray-600 mt-2">Welcome back, {currentVet}</p>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2 text-xs text-gray-500">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Veterinary Page</h1>
+              <p className="text-sm text-gray-600 mt-1 sm:mt-2">Welcome back, {currentVet}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-1 sm:mt-2 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <Wifi className="w-4 h-4 text-green-600" />
                   <span>Database Connected</span>
@@ -367,9 +367,9 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       </header>
 
       {/* Main Content */}
-      <div className="p-2 sm:p-4">
+      <div className="p-1 sm:p-4">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
+          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-6">
             {/* Loading State */}
             {isDataLoading && (
               <div className="flex items-center justify-center py-12">
