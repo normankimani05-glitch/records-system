@@ -32,15 +32,15 @@ function ImageModal({ isOpen, image, onClose }: { isOpen: boolean; image: string
   if (!isOpen || !image) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div className="relative bg-white rounded-lg max-w-6xl w-full max-h-screen overflow-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 bg-white rounded-full p-2 hover:bg-gray-100 z-10 shadow-lg"
+          className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-white rounded-full p-2 hover:bg-gray-100 z-10 shadow-lg"
         >
-          <X className="w-6 h-6 text-gray-800" />
+          <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-800" />
         </button>
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
           <img src={image} alt="Full view" className="w-full h-auto object-contain rounded-lg" />
         </div>
       </div>
@@ -261,25 +261,25 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       {/* Enhanced Header Section */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900">Veterinary Page</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Veterinary Page</h1>
               <p className="text-sm text-gray-600 mt-2">Welcome back, {currentVet}</p>
-              <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mt-2 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <Wifi className="w-4 h-4 text-green-600" />
                   <span>Database Connected</span>
                 </div>
-                <span>â¢</span>
+                <span className="hidden sm:inline">â¢</span>
                 <span>Last sync: {lastSyncTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} PM</span>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="bg-gray-900 text-white hover:bg-gray-800 border-gray-900">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <Button variant="outline" className="bg-gray-900 text-white hover:bg-gray-800 border-gray-900 w-full sm:w-auto">
                 {currentVet.split(" ")[1] || currentVet}
               </Button>
-              <Button variant="outline" onClick={handleLogout} className="text-gray-900 hover:bg-gray-100">
+              <Button variant="outline" onClick={handleLogout} className="text-gray-900 hover:bg-gray-100 w-full sm:w-auto">
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>
@@ -289,9 +289,9 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
       </header>
 
       {/* Main Content */}
-      <div className="p-4">
+      <div className="p-2 sm:p-4">
         <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
             {/* Loading State */}
             {isDataLoading && (
               <div className="flex items-center justify-center py-12">
@@ -303,9 +303,9 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
             {/* Error State */}
             {error && !isDataLoading && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <div className="flex items-center">
+                <div className="flex flex-col sm:flex-row sm:items-center">
                   <div className="text-red-600 mr-2">â</div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-red-800 font-medium">Error loading records</h3>
                     <p className="text-red-600 text-sm">{error}</p>
                     <Button onClick={loadVetData} className="mt-2" size="sm">
@@ -320,22 +320,38 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
             {!isDataLoading && (
               <>
                 <div className="mb-6">
-                  <div className="flex space-x-4 mb-6">
-                    <Button variant={activeTab === "ai" ? "default" : "outline"} onClick={() => setActiveTab("ai")} className={activeTab === "ai" ? HEADER_COLORS.ai : ""}>
+                  <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0 mb-6">
+                    <Button 
+                      variant={activeTab === "ai" ? "default" : "outline"} 
+                      onClick={() => setActiveTab("ai")} 
+                      className={`flex items-center justify-center ${activeTab === "ai" ? HEADER_COLORS.ai : ""} w-full sm:w-auto flex-shrink-0`}
+                    >
                       <Heart className="w-4 h-4 mr-2" />
-                      AI Records
+                      <span className="truncate">AI Records</span>
                     </Button>
-                    <Button variant={activeTab === "ai-images" ? "default" : "outline"} onClick={() => setActiveTab("ai-images")} className={activeTab === "ai-images" ? HEADER_COLORS["ai-records"] : ""}>
+                    <Button 
+                      variant={activeTab === "ai-images" ? "default" : "outline"} 
+                      onClick={() => setActiveTab("ai-images")} 
+                      className={`flex items-center justify-center ${activeTab === "ai-images" ? HEADER_COLORS["ai-records"] : ""} w-full sm:w-auto flex-shrink-0`}
+                    >
                       <Camera className="w-4 h-4 mr-2" />
-                      AI Images by Cow
+                      <span className="truncate">AI Images by Cow</span>
                     </Button>
-                    <Button variant={activeTab === "treatment" ? "default" : "outline"} onClick={() => setActiveTab("treatment")} className={activeTab === "treatment" ? HEADER_COLORS.treatment : ""}>
+                    <Button 
+                      variant={activeTab === "treatment" ? "default" : "outline"} 
+                      onClick={() => setActiveTab("treatment")} 
+                      className={`flex items-center justify-center ${activeTab === "treatment" ? HEADER_COLORS.treatment : ""} w-full sm:w-auto flex-shrink-0`}
+                    >
                       <Stethoscope className="w-4 h-4 mr-2" />
-                      Treatment Records
+                      <span className="truncate">Treatment Records</span>
                     </Button>
-                    <Button variant={activeTab === "treatment-records" ? "default" : "outline"} onClick={() => setActiveTab("treatment-records")} className={activeTab === "treatment-records" ? HEADER_COLORS["treatment-records"] : ""}>
+                    <Button 
+                      variant={activeTab === "treatment-records" ? "default" : "outline"} 
+                      onClick={() => setActiveTab("treatment-records")} 
+                      className={`flex items-center justify-center ${activeTab === "treatment-records" ? HEADER_COLORS["treatment-records"] : ""} w-full sm:w-auto flex-shrink-0`}
+                    >
                       <Calendar className="w-4 h-4 mr-2" />
-                      Treatment Records by Cow
+                      <span className="truncate">Treatment Records by Cow</span>
                     </Button>
                   </div>
                 </div>

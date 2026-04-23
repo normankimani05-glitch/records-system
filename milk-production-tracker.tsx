@@ -1537,7 +1537,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-col sm:flex-row gap-2 mb-4">
               <Button
                 variant={loginMode === "staff" ? "default" : "outline"}
                 onClick={() => {
@@ -1547,7 +1547,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                 className="flex-1"
               >
                 <User className="w-4 h-4 mr-2" />
-                Staff Login
+                <span className="truncate">Staff Login</span>
               </Button>
               <Button
                 variant={loginMode === "vet" ? "default" : "outline"}
@@ -1558,7 +1558,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                 className="flex-1"
               >
                 <Stethoscope className="w-4 h-4 mr-2" />
-                Vet Login
+                <span className="truncate">Vet Login</span>
               </Button>
               <Button
                 variant={loginMode === "owner" ? "default" : "outline"}
@@ -1569,7 +1569,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                 className="flex-1"
               >
                 <User className="w-4 h-4 mr-2" />
-                Owner Login
+                <span className="truncate">Owner Login</span>
               </Button>
             </div>
             
