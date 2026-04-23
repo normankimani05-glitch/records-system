@@ -302,7 +302,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
         )}
 
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div className="mb-4">
             <div className="flex-1">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Veterinary Page</h1>
               <p className="text-sm text-gray-600 mt-2">Welcome back, {currentVet}</p>
