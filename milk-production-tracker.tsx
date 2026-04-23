@@ -175,6 +175,11 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
   const [acarciaEffectiveFrom, setAcarciaEffectiveFrom] = useState("")
   const [acarciaEffectiveTo, setAcarciaEffectiveTo] = useState("")
 
+  // Acarcia payment calculation states
+  const [acarciaMonthlyPayment, setAcarciaMonthlyPayment] = useState("")
+  const [acarciaPaymentMonth, setAcarciaPaymentMonth] = useState("")
+  const [calculatedPricePerLiter, setCalculatedPricePerLiter] = useState<number | null>(null)
+
   // Notepad states
   const [currentNoteTitle, setCurrentNoteTitle] = useState("")
   const [currentNoteContent, setCurrentNoteContent] = useState("")
@@ -1183,6 +1188,50 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
     }
   }, [acarciaPrice, acarciaEffectiveFrom, acarciaEffectiveTo, user, loadAllData])
 
+  // Handle Acarcia payment calculation
+  const handleAcarciaPaymentCalculation = useCallback(() => {
+    const paymentAmount = Number.parseFloat(acarciaMonthlyPayment || "0")
+    const selectedMonth = acarciaPaymentMonth
+
+    if (!acarciaMonthlyPayment || !selectedMonth) {
+      setMessage("Please fill in both payment amount and month!")
+      setTimeout(() => setMessage(""), 3000)
+      return
+    }
+
+    if (isNaN(paymentAmount) || paymentAmount < 0) {
+      setMessage("Please enter a valid payment amount!")
+      setTimeout(() => setMessage(""), 3000)
+      return
+    }
+
+    // Calculate total Acarcia liters for the selected month
+    const monthStart = new Date(selectedMonth + "-01")
+    const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0)
+    
+    const monthRecords = records.filter(record => {
+      const recordDate = new Date(record.date)
+      return record.session === "evening" && // Only Acarcia records
+             recordDate >= monthStart && 
+             recordDate <= monthEnd
+    })
+
+    const totalLiters = monthRecords.reduce((sum, record) => sum + record.acarcia_amount, 0)
+
+    if (totalLiters === 0) {
+      setMessage("No Acarcia milk records found for this month!")
+      setTimeout(() => setMessage(""), 3000)
+      return
+    }
+
+    // Calculate price per liter
+    const pricePerLiter = paymentAmount / totalLiters
+    setCalculatedPricePerLiter(pricePerLiter)
+
+    setMessage(`Calculated: ${pricePerLiter.toFixed(2)} KSh per liter (${totalLiters} liters)`)
+    setTimeout(() => setMessage(""), 5000)
+  }, [acarciaMonthlyPayment, acarciaPaymentMonth, records])
+
   // Memoized daily summaries - Extended to 3 months
   const dailySummaries = useMemo(() => {
     const threeMonthsAgo = new Date()
@@ -1370,13 +1419,10 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
 
       const litersCovered = paymentAmount / averagePrice
 
-      const amountPerLitre = currentDebt.liters > 0 ? paymentAmount / currentDebt.liters : 0
-      
       const newPayment = {
         payment_date: dukePaymentDate,
         amount: paymentAmount,
         liters: litersCovered,
-        amount_per_litre: amountPerLitre,
         period_start: currentDebt.periodStart,
         period_end: dukePaymentDate,
         paid_by: user?.name || "Owner",
@@ -1450,14 +1496,13 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
 
   const exportDukePayments = useCallback(() => {
     const headers = [
-      "Payment #",
+      "Payment Date",
       "Amount (KSh)",
-      "Liters",
-      "Amount/Litre (KSh)",
+      "Liters Covered",
       "Period Start",
       "Period End",
-      "Paid By",
-      "Paid At",
+      "Recorded By",
+      "Recorded At",
       "Notes",
     ]
 
@@ -1467,7 +1512,6 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
         payment.payment_date,
         payment.amount.toFixed(0),
         payment.liters.toFixed(1),
-        (payment.amount_per_litre || 0).toFixed(2),
         payment.period_start,
         payment.period_end,
         payment.paid_by,
@@ -2742,6 +2786,69 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                       </>
                     ) : (
                       "Set Acarcia Monthly Price"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Acarcia Payment Calculator */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Acarcia Payment Calculator</CardTitle>
+                  <CardDescription>
+                    Calculate amount paid per liter by entering total monthly payment and selecting the month
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="acarcia-payment">Total Monthly Payment (KSh)</Label>
+                      <Input
+                        id="acarcia-payment"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={acarciaMonthlyPayment}
+                        onChange={(e) => setAcarciaMonthlyPayment(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="acarcia-payment-month">Month</Label>
+                      <Input
+                        id="acarcia-payment-month"
+                        type="month"
+                        value={acarciaPaymentMonth}
+                        onChange={(e) => setAcarciaPaymentMonth(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {calculatedPricePerLiter !== null && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-800">
+                          {calculatedPricePerLiter.toFixed(2)} KSh/L
+                        </div>
+                        <div className="text-sm text-green-600 mt-1">
+                          Amount paid per liter
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleAcarciaPaymentCalculation}
+                    disabled={isLoading || !acarciaMonthlyPayment || !acarciaPaymentMonth}
+                    className="w-full"
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Calculating...
+                      </>
+                    ) : (
+                      "Calculate Price Per Liter"
                     )}
                   </Button>
                 </CardContent>
