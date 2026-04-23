@@ -2996,6 +2996,44 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Information</CardTitle>
+                  <CardDescription>Cloud database statistics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-600">Total Records:</p>
+                      <p className="font-medium">{records.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Price Changes:</p>
+                      <p className="font-medium">{priceHistory.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Duke Payments:</p>
+                      <p className="font-medium">{dukePayments.length}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Acarcia Paid Periods:</p>
+                      <p className="font-medium">
+                        {paymentStatus.filter((p) => p.is_paid && p.recipient === "Acarcia").length}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-2">
+                      <Wifi className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Cloud Database Connected</span>
+                    </div>
+                    <p className="text-xs text-green-700 mt-1">
+                      All data is automatically synced across all devices in real-time
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
