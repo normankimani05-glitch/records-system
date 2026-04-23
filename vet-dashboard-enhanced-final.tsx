@@ -481,7 +481,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
                           className="block w-full text-sm text-gray-500 file:mr-4 file:ml-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:text-sm file:font-semibold hover:file:bg-gray-50"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Upload 1-2 photos (JPG, PNG, GIF, WebP, BMP, and all image formats)
+                          All image formats accpted
                         </p>
                         {aiForm.ai_images.length > 0 && (
                           <div className="mt-4">
@@ -647,7 +647,7 @@ export default function VetDashboard({ user, onLogout }: VetDashboardProps) {
                           className="block w-full text-sm text-gray-500 file:mr-4 file:ml-4 file:py-2 file:px-4 file:border file:border-gray-300 file:rounded-md file:text-sm file:font-semibold hover:file:bg-gray-50"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          Upload 1-2 photos (JPG, PNG, GIF, WebP, BMP, and all image formats)
+                          Any image formats accepted.
                         </p>
                         {treatmentForm.treatment_images.length > 0 && (
                           <div className="mt-2">
