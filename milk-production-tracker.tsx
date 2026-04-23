@@ -2800,57 +2800,80 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="acarcia-payment">Total Monthly Payment (KSh)</Label>
-                      <Input
-                        id="acarcia-payment"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        value={acarciaMonthlyPayment}
-                        onChange={(e) => setAcarciaMonthlyPayment(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="acarcia-payment-month">Month</Label>
-                      <Input
-                        id="acarcia-payment-month"
-                        type="month"
-                        value={acarciaPaymentMonth}
-                        onChange={(e) => setAcarciaPaymentMonth(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {calculatedPricePerLiter !== null && (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-800">
-                          {calculatedPricePerLiter.toFixed(2)} KSh/L
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Input Fields */}
+                    <div className="lg:col-span-2 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="acarcia-payment">Total Monthly Payment (KSh)</Label>
+                          <Input
+                            id="acarcia-payment"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            value={acarciaMonthlyPayment}
+                            onChange={(e) => setAcarciaMonthlyPayment(e.target.value)}
+                          />
                         </div>
-                        <div className="text-sm text-green-600 mt-1">
-                          Amount paid per liter
+                        <div className="space-y-2">
+                          <Label htmlFor="acarcia-payment-month">Month</Label>
+                          <Input
+                            id="acarcia-payment-month"
+                            type="month"
+                            value={acarciaPaymentMonth}
+                            onChange={(e) => setAcarciaPaymentMonth(e.target.value)}
+                          />
                         </div>
                       </div>
-                    </div>
-                  )}
 
-                  <Button
-                    onClick={handleAcarciaPaymentCalculation}
-                    disabled={isLoading || !acarciaMonthlyPayment || !acarciaPaymentMonth}
-                    className="w-full"
-                  >
-                    {isLoading ? (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                        Calculating...
-                      </>
-                    ) : (
-                      "Calculate Price Per Liter"
-                    )}
-                  </Button>
+                      <Button
+                        onClick={handleAcarciaPaymentCalculation}
+                        disabled={isLoading || !acarciaMonthlyPayment || !acarciaPaymentMonth}
+                        className="w-full sm:w-auto px-6 py-2 h-10 text-sm sm:text-base transition-all duration-200 hover:scale-105 active:scale-95"
+                      >
+                        {isLoading ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Calculating...
+                          </>
+                        ) : (
+                          <>
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            Calculate Price Per Liter
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Result Display on Right Side */}
+                    <div className="lg:col-span-1">
+                      {calculatedPricePerLiter !== null ? (
+                        <div className="p-4 sm:p-6 bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-xl shadow-lg">
+                          <div className="text-center">
+                            <div className="text-2xl sm:text-3xl font-bold text-green-800 mb-2">
+                              {calculatedPricePerLiter.toFixed(2)}
+                            </div>
+                            <div className="text-sm sm:text-base text-green-600 font-medium">
+                              KSh per liter
+                            </div>
+                            <div className="text-xs text-green-500 mt-1">
+                              Amount paid per liter
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-4 sm:p-6 bg-gray-50 border-2 border-gray-200 rounded-xl">
+                          <div className="text-center">
+                            <BarChart3 className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <div className="text-sm text-gray-500">
+                              Result will appear here
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
