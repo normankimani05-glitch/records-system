@@ -459,15 +459,45 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
     initializeApp()
   }, [loadAllData])
 
-  // Generate recent dates for custom date picker
+  // Generate recent dates for custom date picker - optimized for 3 months of data
   const getRecentDates = () => {
     const dates: string[] = []
-    for (let i = 0; i < 50; i++) {
-      const date = new Date()
+    const today = new Date()
+    
+    // Generate dates for the last 3 months (90 days)
+    for (let i = 0; i < 90; i++) {
+      const date = new Date(today)
       date.setDate(date.getDate() - i)
       dates.push(date.toISOString().split("T")[0])
     }
-    return dates
+    
+    // Sort dates in descending order (newest first)
+    return dates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+  }
+
+  // Generate organized date ranges for easier data entry
+  const getDateRanges = () => {
+    const today = new Date()
+    const ranges = []
+    
+    // Current month
+    const currentMonth = today.getMonth()
+    const currentYear = today.getFullYear()
+    
+    // Last 3 months
+    for (let i = 0; i < 3; i++) {
+      const monthDate = new Date(currentYear, currentMonth - i, 1)
+      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      const monthValue = monthDate.toISOString().split('T')[0].slice(0, 7) // YYYY-MM format
+      
+      ranges.push({
+        label: monthName,
+        value: monthValue,
+        isCurrent: i === 0
+      })
+    }
+    
+    return ranges
   }
 
   // Get Acarcia price for a specific date
@@ -2050,19 +2080,45 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="morning-date">Date</Label>
-                    <Select value={entry.date} onValueChange={(value) => handleEntryChange("date", value)}>
-                      <SelectTrigger id="morning-date">
-                        <SelectValue placeholder="Select date" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {recentDates.filter(date => date && date.trim() !== "").map((date) => (
-                          <SelectItem key={date} value={date}>
-                            {date}
-                          </SelectItem>
+                    <Label htmlFor="morning-date">Date Selection</Label>
+                    
+                    {/* Month Range Selector for Quick Access */}
+                    <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <Label className="text-sm font-medium text-blue-800 mb-2">Quick Month Access</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {getDateRanges().map((range) => (
+                          <Button
+                            key={range.value}
+                            variant={range.isCurrent ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              // Set to first day of selected month
+                              handleEntryChange("date", range.value + "-01")
+                            }}
+                            className="text-xs"
+                          >
+                            {range.label}
+                          </Button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </div>
+
+                    {/* Individual Date Selector */}
+                    <div>
+                      <Label className="text-sm text-gray-600">Or select specific date:</Label>
+                      <Select value={entry.date} onValueChange={(value) => handleEntryChange("date", value)}>
+                        <SelectTrigger id="morning-date">
+                          <SelectValue placeholder="Select date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {recentDates.filter(date => date && date.trim() !== "").map((date) => (
+                            <SelectItem key={date} value={date}>
+                              {date}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -2124,19 +2180,45 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="evening-date">Date</Label>
-                    <Select value={entry.date} onValueChange={(value) => handleEntryChange("date", value)}>
-                      <SelectTrigger id="evening-date">
-                        <SelectValue placeholder="Select date" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {recentDates.filter(date => date && date.trim() !== "").map((date) => (
-                          <SelectItem key={date} value={date}>
-                            {date}
-                          </SelectItem>
+                    <Label htmlFor="evening-date">Date Selection</Label>
+                    
+                    {/* Month Range Selector for Quick Access */}
+                    <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <Label className="text-sm font-medium text-blue-800 mb-2">Quick Month Access</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {getDateRanges().map((range) => (
+                          <Button
+                            key={range.value}
+                            variant={range.isCurrent ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              // Set to first day of selected month
+                              handleEntryChange("date", range.value + "-01")
+                            }}
+                            className="text-xs"
+                          >
+                            {range.label}
+                          </Button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </div>
+
+                    {/* Individual Date Selector */}
+                    <div>
+                      <Label className="text-sm text-gray-600">Or select specific date:</Label>
+                      <Select value={entry.date} onValueChange={(value) => handleEntryChange("date", value)}>
+                        <SelectTrigger id="evening-date">
+                          <SelectValue placeholder="Select date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {recentDates.filter(date => date && date.trim() !== "").map((date) => (
+                            <SelectItem key={date} value={date}>
+                              {date}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -2195,19 +2277,45 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="home-date">Date</Label>
-                    <Select value={entry.date} onValueChange={(value) => handleEntryChange("date", value)}>
-                      <SelectTrigger id="home-date">
-                        <SelectValue placeholder="Select date" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {recentDates.filter(date => date && date.trim() !== "").map((date) => (
-                          <SelectItem key={date} value={date}>
-                            {date}
-                          </SelectItem>
+                    <Label htmlFor="home-date">Date Selection</Label>
+                    
+                    {/* Month Range Selector for Quick Access */}
+                    <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <Label className="text-sm font-medium text-blue-800 mb-2">Quick Month Access</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {getDateRanges().map((range) => (
+                          <Button
+                            key={range.value}
+                            variant={range.isCurrent ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              // Set to first day of selected month
+                              handleEntryChange("date", range.value + "-01")
+                            }}
+                            className="text-xs"
+                          >
+                            {range.label}
+                          </Button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </div>
+
+                    {/* Individual Date Selector */}
+                    <div>
+                      <Label className="text-sm text-gray-600">Or select specific date:</Label>
+                      <Select value={entry.date} onValueChange={(value) => handleEntryChange("date", value)}>
+                        <SelectTrigger id="home-date">
+                          <SelectValue placeholder="Select date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {recentDates.filter(date => date && date.trim() !== "").map((date) => (
+                            <SelectItem key={date} value={date}>
+                              {date}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
@@ -3457,15 +3565,7 @@ const [currentAcarciaPrice, setCurrentAcarciaPrice] = useState<number>(45)
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wifi className="w-5 h-5" />
-                    Cloud Database Benefits
-                  </CardTitle>
-                  <CardDescription>Real-time synchronization across all devices</CardDescription>
-                </CardHeader>
                 <CardContent className="space-y-4">
-
                   <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
                     <div className="text-center">
                       <Wifi className="w-8 h-8 text-green-600 mx-auto mb-2" />
